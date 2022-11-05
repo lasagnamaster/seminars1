@@ -1,2 +1,3 @@
 # seminars1
-this one is the one I need
+krahotin alexey
+mipt student bachelor 1 year
