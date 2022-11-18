@@ -33,12 +33,12 @@ bombs = []
 
 class Ball:
     def __init__(self, screen: pygame.Surface, x=40, y=HEIGHT-40, type = 0, r = 10, vx = 0, vy = 0):
-        """ Конструктор класса ball
+        #""" ����������� ������ ball
 
-        Args:
-        x - начальное положение мяча по горизонтали
-        y - начальное положение мяча по вертикали
-        """
+        #Args:
+        #x - ��������� ��������� ���� �� �����������
+        #y - ��������� ��������� ���� �� ���������
+        #"""
         self.screen = screen
         self.x = x
         self.y = y
@@ -52,15 +52,15 @@ class Ball:
         self.type = 0
 
     def move(self):
-        """Переместить мяч по прошествии единицы времени.
+        #"""����������� ��� �� ���������� ������� �������.
 
-        Метод описывает перемещение мяча за один кадр перерисовки. То есть, обновляет значения
-        self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
-        и стен по краям окна (размер окна 800х600).
-        """
+        #����� ��������� ����������� ���� �� ���� ���� �����������. �� ����, ��������� ��������
+        #self.x � self.y � ������ ��������� self.vx � self.vy, ���� ����������, ����������� �� ���,
+        #� ���� �� ����� ���� (������ ���� 800�600).
+        #"""
         # FIXME
         
-        if self.x + self.r + self.vx>= WIDTH: #Страшное описание движения шарика
+        if self.x + self.r + self.vx>= WIDTH: #�������� �������� �������� ������
             self.vx = -self.vx*0.5
         if self.y + self.r - self.vy + self.g>= HEIGHT:
             self.vy = -self.vy*0.5
@@ -112,6 +112,22 @@ class Ball:
             explosion = Ball(screen, x = self.x, y = self.y, r = 8, vx = randint(-5,5)*5, vy = randint(1,5)*5)
             balls.append(explosion)
 
+    def dyin_b(b):
+        if b.live >= FPS*1 and b.type==1:
+            b.explode()
+            balls.remove(b)
+        elif b.live >= FPS*3 and b.type==0:
+            balls.remove(b)
+
+    def movin_n_drawin_balls():
+        global targets, balls
+        for b in balls:
+            
+            b.move()
+            b.draw()
+            Target.dyin_t(targets, b)
+            Ball.dyin_b(b) 
+
 class Gun:
     def __init__(self, screen):
         self.screen = screen
@@ -130,12 +146,12 @@ class Gun:
         self.f2_on = 1
 
     def fire2_end(self, event):
-        """Выстрел мячом.
+        #"""������� �����.
 
-        Происходит при отпускании кнопки мыши.
-        Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
-        Пкм для особого снаряда.
-        """
+        #���������� ��� ���������� ������ ����.
+        #��������� �������� ��������� �������� ���� vx � vy ������� �� ��������� ����.
+        #��� ��� ������� �������.
+        #"""
         global balls, bullet, shots
         bullet += 1
         new_ball = Ball(self.screen)
@@ -158,7 +174,7 @@ class Gun:
         self.f2_power = 5
 
     def targetting(self, event):
-        """Прицеливание. Зависит от положения мыши."""
+        #"""������������. ������� �� ��������� ����."""
         
         self.x = event.pos[0]
         self.y = event.pos[1]
@@ -241,7 +257,7 @@ class Gun:
 
 class Target:
     def __init__(self, type):
-        """ Инициализация новой цели. """
+        #""" ������������� ����� ����. """
         
         self.points = 1
         self.live = 1
@@ -254,12 +270,12 @@ class Target:
         self.type = type
 
     def hit(self, point=1):
-        """Попадание шарика в цель."""
+        #"""��������� ������ � ����."""
         global points
         points+=self.points
         
     def move(self):
-        """Движение цели в зависимости от типа"""
+        #"""�������� ���� � ����������� �� ����"""
         global gticker
         if self.type==1:
             self.vx = 5*math.cos(0.1*gticker)
@@ -278,10 +294,22 @@ class Target:
         if self.type==1:
             pygame.draw.circle(screen, BLACK, (self.x, self.y), self.r*0.2)
 
+    def dyin_t(array,b):
+        for i in range(len(array)):
+            t = array[i]
+            if b.hittest(t) and t.live:
+                t.live = 0
+                t.hit()
+
+    def movin_n_drawin_target(array):
+        for i in range(len(array)):
+            array[i].move()
+            if array[i].live: array[i].draw()
+
 
 class bomb:
     def __init__(self, x, y, vx):
-        """Создание бомбочки"""
+        #"""�������� ��������"""
         self.x = x
         self.y = y
         self.vy = 0
@@ -296,6 +324,58 @@ class bomb:
     def draw(self):
         pygame.draw.circle(screen, BLACK, (self.x, self.y), 10)
         pygame.draw.circle(screen, GREY, (self.x, self.y), 8)
+
+    def dropin():
+        global targets, gticker, bombs
+        for i in range(len(targets)):
+            if gticker%(50*(i+1))==0 and targets[i].live:
+                bombs.append(bomb(x = targets[i].x, y = targets[i].y, vx = targets[i].vx))
+
+    def end_game():
+        global bombs, gun, lticker, clock
+        for bomba in bombs:
+            bomba.move()
+            bomba.draw()
+            if bomba.y>=HEIGHT: bombs.remove(bomba)
+            if gun.hittest(bomba): 
+            
+                while lticker<=210:
+                    lticker+=1
+                    clock.tick(FPS)
+                    screen.fill(WHITE)
+                    score_text = score_font.render("�� ���������!!", 1, (12,12,56))
+                    score_text1 = score_font.render('��� ����: '+str(points), 1, (0,0,0))
+                    score_rect = score_text.get_rect(center = (WIDTH//2, HEIGHT//2-40))
+                    score_rect1 = score_text.get_rect(center = (WIDTH//2, HEIGHT//2))
+                    screen.blit(score_text1, score_rect1)
+                    screen.blit(score_text, score_rect)
+                    pygame.display.update()
+                    we_are_leaving = True
+
+
+def intermission():
+    global targets, gticker, can_shoot, sgticker, balls
+    alive = False
+    for i in range(len(targets)):
+        if targets[i].live:
+            sgticker = gticker
+            alive = True
+    if not(alive):
+        can_shoot = False
+        score_text = score_font.render('��� ����: '+str(points), 1, (0,0,0))
+        score_rect = score_text.get_rect(center = (WIDTH//2, HEIGHT//2))
+        screen.blit(score_text, score_rect)
+        targets = []
+        
+    if gticker-sgticker==FPS*3:
+        for i in range(randint(1,3)):
+            type1 = randint(0,1)
+            targets.append(Target(type = type1))
+        balls = []
+        screen.fill(WHITE)
+        
+        can_shoot = True
+
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -317,10 +397,9 @@ lticker = 0
 while not finished:
     gticker+=1
     screen.fill(WHITE)
+
     gun.draw()
-    for i in range(len(targets)):
-        targets[i].move()
-        if targets[i].live: targets[i].draw()
+    Target.movin_n_drawin_target(targets)
     
     clock.tick(FPS)
     for event in pygame.event.get():
@@ -336,67 +415,14 @@ while not finished:
     if eventik:
         gun.targetting(eventik)
     keys = pygame.key.get_pressed()
+
     gun.move(keys)
 
-    for b in balls:
-        b.draw()
-        b.move()
-        for i in range(len(targets)):
-            if b.hittest(targets[i]) and targets[i].live:
-                targets[i].live = 0
-                targets[i].hit()
-
-        if b.live >= FPS*1 and b.type==1:
-            b.explode()
-            balls.remove(b)
-        elif b.live >= FPS*3 and b.type==0:
-            balls.remove(b)
-
+    Ball.movin_n_drawin_balls()
+    bomb.dropin()
+    bomb.end_game()
+    intermission()
     
-    for i in range(len(targets)):
-        if gticker%(50*(i+1))==0 and targets[i].live:
-            bombs.append(bomb(x = targets[i].x, y = targets[i].y, vx = targets[i].vx))
-
-    for bomba in bombs:
-        bomba.move()
-        bomba.draw()
-        if bomba.y>=HEIGHT: bombs.remove(bomba)
-        if gun.hittest(bomba): 
-            
-            while lticker<=210:
-                lticker+=1
-                clock.tick(FPS)
-                screen.fill(WHITE)
-                score_text = score_font.render('Вы проиграли!!', 1, (12,12,56))
-                score_text1 = score_font.render('Ваш счёт: '+str(points), 1, (0,0,0))
-                score_rect = score_text.get_rect(center = (WIDTH//2, HEIGHT//2-40))
-                score_rect1 = score_text.get_rect(center = (WIDTH//2, HEIGHT//2))
-                screen.blit(score_text1, score_rect1)
-                screen.blit(score_text, score_rect)
-                pygame.display.update()
-                we_are_leaving = True
-
-    alive = False
-    for i in range(len(targets)):
-        if targets[i].live:
-            sgticker = gticker
-            alive = True
-    if not(alive):
-        can_shoot = False
-        score_text = score_font.render('Ваш счёт: '+str(points), 1, (0,0,0))
-        score_rect = score_text.get_rect(center = (WIDTH//2, HEIGHT//2))
-        screen.blit(score_text, score_rect)
-        targets = []
-        
-    if gticker-sgticker==FPS*3:
-        for i in range(randint(1,3)):
-            type1 = randint(0,1)
-            targets.append(Target(type = type1))
-        balls = []
-        screen.fill(WHITE)
-        
-        can_shoot = True
-
     gun.power_up()
     pygame.display.update()
 
